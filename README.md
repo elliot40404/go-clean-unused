@@ -1,5 +1,12 @@
 # go-clean-unused
 
+[![Go Version](https://img.shields.io/github/go-mod/go-version/elliot40404/go-clean-unused)](https://github.com/elliot40404/go-clean-unused)
+[![Release](https://img.shields.io/github/v/release/elliot40404/go-clean-unused)](https://github.com/elliot40404/go-clean-unused/releases/latest)
+[![Test](https://github.com/elliot40404/go-clean-unused/actions/workflows/build.yml/badge.svg)](https://github.com/elliot40404/go-clean-unused/actions/workflows/build.yml)
+[![Lint](https://github.com/elliot40404/go-clean-unused/actions/workflows/lint.yml/badge.svg)](https://github.com/elliot40404/go-clean-unused/actions/workflows/lint.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/elliot40404/go-clean-unused)](https://goreportcard.com/report/github.com/elliot40404/go-clean-unused)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A smart CLI tool that automatically comments out or removes unused Go declarations (variables, imports, constants, functions, and types) so your project can compile successfully.
 
 If you have ever been frustrated by Go's strict "declared and not used" or "imported and not used" compiler errors while rapidly prototyping, debugging, or performing large refactors, this tool is for you.
