@@ -1,0 +1,59 @@
+# .goreleaser.yaml
+# Documentation: https://goreleaser.com
+# Version: 2
+
+version: 2
+
+project_name: go-clean-unused
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: go-clean-unused
+    binary: go-clean-unused
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - v6
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+      - zip
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^refactor:'
+
+release:
+  github:
+    owner: elliot40404
+    name: go-clean-unused
+  draft: false
+  prerelease: auto

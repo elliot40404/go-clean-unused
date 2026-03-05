@@ -1,0 +1,182 @@
+# .golangci.yml
+# Industry-standard configuration for golangci-lint (V2 Syntax)
+
+version: "2"
+
+run:
+  # Timeout for analysis, e.g. 30s, 5m, default is 1m
+  timeout: 5m
+  # Include test files or not, default is true
+  tests: true
+
+output:
+  # The formats used to render issues.
+  formats:
+    # Prints issues in a text format with colors, line number, and linter name.
+    text:
+      path: stdout
+      print-issued-lines: true
+      print-linter-name: true
+
+formatters:
+  enable:
+    - gofumpt
+    - gci
+
+  settings:
+    gofumpt:
+      # Choose whether or not to use the extra rules that are disabled by default
+      extra-rules: true
+
+    gci:
+      # Section configuration to compare against.
+      sections:
+        - standard
+        - default
+        - prefix(github.com/elliot40404/go-clean-unused)
+      custom-order: true
+
+  exclusions:
+    paths:
+      - vendor/
+      - bin/
+
+linters:
+  # Disable all linters by default to have strict control over what is enabled
+  # The value can be: standard, all, none, fast.
+  default: none
+
+  enable:
+    # --- Default Linters (Highly Recommended) ---
+    - errcheck # Checks for unchecked errors
+    - govet # Examines Go source code and reports suspicious constructs
+    - ineffassign # Detects when assignments to existing variables are not used
+    - staticcheck # State of the art linter; a drop-in replacement of go vet (includes gosimple)
+    - unused # Checks for unused constants, variables, functions and types
+
+    # --- Code Quality & Performance ---
+    - misspell # Finds commonly misspelled English words in comments
+    - revive # Fast, configurable, extensible, flexible, and beautiful linter for Go
+    - gocritic # The most opinionated Go source code linter
+    - bodyclose # Checks whether HTTP response body is closed successfully
+    - errorlint # Finds code that will cause problems with the error wrapping scheme
+    - errname # Checks that sentinel errors are prefixed with the `Err`
+    - nilerr # Finds the code that returns nil even if it checks that the error is not nil
+
+    # --- Security ---
+    - gosec # Inspects source code for security problems
+    - contextcheck # Checks the function whether use a non-inherited context
+
+  # All available settings of specific linters
+  settings:
+    revive:
+      rules:
+        # Disable the noisy exported comment requirement
+        - name: exported
+          disabled: true
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+      disabled-checks:
+        - hugeParam # often triggers falsely on standard structs
+        - importShadow # False positive on variables named 'logger' etc.
+        - unnamedResult # Naming simple tuples is overkill
+        - ifElseChain # Stylistic preference, not a bug
+        - rangeValCopy # Copying small structs in range loops is fine
+        - sprintfQuotedString # Safe to disable globally
+        - typeAssertChain # Safe to disable globally
+        - regexpSimplify # Safe to disable globally
+        - tooManyResultsChecker # Safe to disable globally
+
+    errorlint:
+      # Check whether fmt.Errorf uses the %w verb for formatting errors
+      errorf: true
+      # Check for plain type assertions and type switches
+      asserts: true
+      # Check for plain error comparisons
+      comparison: true
+
+    gosec:
+      # To select a subset of rules to run. (Disable specific rules if they are too noisy)
+      excludes:
+        - G104 # Duplicates errcheck
+        - G304 # File path provided as taint input (often noisy in CLI tools)
+        - G101 # Hardcoded credentials (too many false positives on struct fields)
+        - G117 # Secret field names false positives
+        - G115 # Integer overflow false positives (often noisy on simple casting)
+
+  # Defines a set of rules to ignore issues.
+  exclusions:
+    # Which file paths to exclude: they will be analyzed, but issues from them won't be reported.
+    paths:
+      - vendor/
+      - bin/
+      - ".*\\.my\\.go$"
+      # - ".*_test\\.go$" # Uncomment to skip all tests
+
+    # Excluding configuration per-path, per-linter, per-text and per-source.
+    rules:
+      # 1. Exclude certain linters entirely from running on tests files
+      - path: _test\.go
+        linters:
+          - gosec # Security checks are usually overkill for test data
+          - errcheck # Unchecked errors in tests are less critical
+          - bodyclose # Mocking HTTP often trips this up
+          - contextcheck # Tests often don't need strict context passing
+
+      # 2. Allow t *testing.T to be the first argument before context.Context in test files
+      - path: _test\.go
+        text: "context-as-argument:"
+        linters:
+          - revive
+
+      # 3. Exclude dangerous gosec rules ONLY in CLI tools and internal utility scripts
+      - path: (cmd|scripts)/.*
+        text: "(G404|G703|G704|G705)"
+        linters:
+          - gosec
+
+      # 4. Allow os.Exit() after defers in CLI tools and scripts
+      - path: (cmd|scripts)/.*
+        text: "exitAfterDefer"
+        linters:
+          - gocritic
+
+      # 5. Ignore contextcheck in CLI tools/simulators where creating fresh contexts is normal
+      - path: (cmd|scripts)/.*
+        linters:
+          - contextcheck
+
+      # 6. Allow math/rand (G404) in non-security utilities like retry jitter and name generators
+      - path: internal/utils/(http_retry|name_generator)\.go
+        text: "G404"
+        linters:
+          - gosec
+
+      # 7. Ignore contextcheck for deferred metric/cleanup functions in services
+      - path: internal/services/.*\.go
+        text: "should pass the context parameter"
+        linters:
+          - contextcheck
+
+      # 8. Exclude migrations from some strict checks
+      - path: migrations/
+        linters:
+          - revive
+          - gocritic
+
+issues:
+  # Maximum issues count per one linter. Set to 0 to disable.
+  max-issues-per-linter: 0
+  # Maximum count of issues with the same text. Set to 0 to disable.
+  max-same-issues: 0
