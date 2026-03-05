@@ -357,6 +357,28 @@ func TestExtractTargetsEdgeCases(t *testing.T) {
 			expected: 0,
 		},
 		{
+			name: "Windows path with drive letter",
+			pkgs: []*packages.Package{
+				{
+					Errors: []packages.Error{
+						{Pos: "C:\\Users\\user\\project\\main.go:11:2", Msg: "a declared and not used"},
+					},
+				},
+			},
+			expected: 1,
+		},
+		{
+			name: "Windows path import error",
+			pkgs: []*packages.Package{
+				{
+					Errors: []packages.Error{
+						{Pos: "D:\\code\\project\\main.go:5:8", Msg: "\"fmt\" imported and not used"},
+					},
+				},
+			},
+			expected: 1,
+		},
+		{
 			name: "package with no errors",
 			pkgs: []*packages.Package{
 				{

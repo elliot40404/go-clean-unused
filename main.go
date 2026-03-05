@@ -111,12 +111,22 @@ func extractTargets(pkgs []*packages.Package) []Target {
 	for _, pkg := range pkgs {
 		for _, err := range pkg.Errors {
 			// Pos is typically "file:line:col" or "file:line"
-			parts := strings.Split(err.Pos, ":")
-			if len(parts) < 2 {
+			pos := err.Pos
+			lastColon := strings.LastIndex(pos, ":")
+			if lastColon == -1 {
 				continue
 			}
-			file := parts[0]
-			line, _ := strconv.Atoi(parts[1])
+			beforeCol := pos[:lastColon]
+			prevColon := strings.LastIndex(beforeCol, ":")
+			if prevColon == -1 {
+				continue
+			}
+			lineStr := beforeCol[prevColon+1:]
+			line, lineErr := strconv.Atoi(lineStr)
+			if lineErr != nil {
+				continue
+			}
+			file := beforeCol[:prevColon]
 			msg := err.Msg
 
 			var kind TargetKind
